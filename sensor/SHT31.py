@@ -62,19 +62,41 @@ class SHT31(object):
             humidity = 50.0 + random.uniform(-20, 30)    # 30-80%
             return temperature, humidity
             
-        try:
-            self.write_list(COMMAND_MEAS_CLKST, COMMAND_MEAS_HIGHREP) #測定を指示
-            sleep(0.5)
+        # 拡張ボード対応: より安定した通信方式を試行
+        max_retries = 3
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    logger.info(f"再試行 {attempt}/{max_retries-1}")
+                    sleep(0.2)  # 再試行前の短い待機
+                
+                # より安定した低速測定コマンドを使用
+                self.write_list(0x2C, [0x10])  # 中速測定（元は高速測定）
+                sleep(1.0 if attempt > 0 else 0.5)  # 再試行時はより長く待機
 
-            data = self.read_list(0x00, 6) #測定結果の読み取りを指示
-            temperature = -45 + (175 * (data[0] * 256 + data[1]) / 65535.0) #温度計算式
-            humidity = 100 * (data[3] * 256 + data[4]) / 65535.0 #湿度計算式
+                data = self.read_list(0x00, 6) #測定結果の読み取りを指示
+                temperature = -45 + (175 * (data[0] * 256 + data[1]) / 65535.0) #温度計算式
+                humidity = 100 * (data[3] * 256 + data[4]) / 65535.0 #湿度計算式
 
-            return temperature, humidity #温度,湿度を返す
-        except (TimeoutError, OSError) as e:
-            logger.error(f"SHT31センサーとの通信エラー: {e}")
-            logger.error("センサーが接続されていない可能性があります。--testオプションを使用してテストモードで実行してください。")
-            raise
+                return temperature, humidity #温度,湿度を返す
+                
+            except (TimeoutError, OSError) as e:
+                last_error = e
+                if attempt == max_retries - 1:
+                    # 最後の試行も失敗した場合
+                    logger.error(f"SHT31センサーとの通信エラー: {e}")
+                    if "Input/output error" in str(e):
+                        logger.error("🔧 拡張ボード使用時の一般的な問題:")
+                        logger.error("   1. I2Cクロック速度が高すぎる可能性")
+                        logger.error("   2. プルアップ抵抗の問題")
+                        logger.error("   3. 配線の接触不良")
+                        logger.error("   解決方法: sudo reboot でI2C設定変更を適用してください")
+                    logger.error("センサーが接続されていない可能性があります。--testオプションを使用してテストモードで実行してください。")
+                    raise
+                else:
+                    logger.warning(f"通信エラー（試行 {attempt+1}/{max_retries}): {e}")
 
     def read(self, register: int) -> int:
         """Read and return a byte from the specified 16-bit register address.

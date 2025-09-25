@@ -7,7 +7,7 @@ google:
   spread_sheet:
     use: True # or False
     # spreadsheet id
-    id: dummy # TODO update
+    id: 19j7esFUAv_v_NLTTLw9-uIK9JpJ4f0xhiJgU3KgW3zo # TODO update
   photo_library:
     use: True # or False
     # photo library token path
@@ -20,7 +20,7 @@ google:
     # mail token path
     token_path: gcp/mail_token.json
     # email address to send
-    to_address: dummy # TODO update
+    to_address: konitomo098@gmail.com # TODO update
     summary:
       use: True # or False
       subject: "[Summary] IoT-kit"
