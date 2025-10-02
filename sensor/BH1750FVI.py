@@ -29,7 +29,7 @@ COMMAND_ONE_TIME_HIGH_RES_MODE_2 = 0x21
 COMMAND_ONE_TIME_LOW_RES_MODE = 0x23
 
 
-class BH1750FVI(object):
+class BH1750FVI(object): #照度センサー
     def __init__(self, address: int = ADDRESS) -> None:
         """Digital Light Sensor Client Object.
         See: https://docs.rs-online.com/f199/0900766b81539909.pdf

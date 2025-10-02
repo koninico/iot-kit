@@ -16,7 +16,7 @@ COMMAND_SYSALS_START = 0x0038
 COMMAND_RESULT_ALS_VAL = 0x0050
 
 
-class VL6180X(object):
+class VL6180X(object): #距離センサー
     def __init__(self, address: int = ADDRESS, test_mode: bool = False) -> None:
         """Infrared Distance Sensor Client Object.
         See: https://www.st.com/ja/imaging-and-photonics-solutions/vl6180x.html

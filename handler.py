@@ -1,5 +1,7 @@
 import argparse
 import os
+import sys
+import fcntl
 import yaml
 import requests
 import schedule
@@ -604,10 +606,35 @@ def _create_scheduler_job(callback_job: object, scheduler_config: Dict) -> None:
                 getattr(schedule.every(), day_of_week).do(callback_job)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="main handler script")
-    parser.add_argument("-f", "--function", type=str, default="main", help="set function name in this file")
-    args = parser.parse_args()
+def acquire_lock():
+    """Acquire a file lock to prevent multiple instances."""
+    lock_file = "/tmp/iot-kit-handler.lock"
+    try:
+        lock_fd = open(lock_file, 'w')
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_fd.write(str(os.getpid()))
+        lock_fd.flush()
+        logger.info(f"Lock acquired by PID {os.getpid()}")
+        return lock_fd
+    except IOError:
+        logger.error("Another instance of handler.py is already running. Exiting.")
+        sys.exit(1)
 
-    func_dict = {name: function for name, function in locals().items() if callable(function)}
-    func_dict[args.function]()
+
+if __name__ == "__main__":
+    # Acquire lock to prevent multiple instances
+    lock_fd = acquire_lock()
+    
+    try:
+        parser = argparse.ArgumentParser(description="main handler script")
+        parser.add_argument("-f", "--function", type=str, default="main", help="set function name in this file")
+        args = parser.parse_args()
+
+        func_dict = {name: function for name, function in locals().items() if callable(function)}
+        func_dict[args.function]()
+    finally:
+        # Release lock when exiting
+        if 'lock_fd' in locals():
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            lock_fd.close()
+            logger.info("Lock released")

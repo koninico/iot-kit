@@ -13,7 +13,7 @@ COMMAND_MEAS_CLKST = 0x2C
 COMMAND_MEAS_HIGHREP = [0x06]
 
 
-class SHT31(object):
+class SHT31(object): #温湿度センサー
     def __init__(self, address: int = ADDRESS, test_mode: bool = False) -> None:
         """Temperature and Humidity Sensor Client Object.
         See: https://sensirion.com/media/documents/213E6A3B/63A5A569/Datasheet_SHT3x_DIS.pdf

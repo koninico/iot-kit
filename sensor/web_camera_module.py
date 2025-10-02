@@ -77,7 +77,7 @@ class WebCameraModule(object):
 
         result = cv2.imwrite(save_path, img)
         cap.release()
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows() removed for headless environment
         logger.info(f"Succeeded in saving a photo with web camera. save_path: {save_path}")
 
         return result

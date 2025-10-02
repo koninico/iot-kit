@@ -1,0 +1,23 @@
+[Unit]
+Description=IoT Kit Monitoring Service
+After=network.target
+
+[Service]
+Type=simple
+User=koni
+WorkingDirectory=/home/koni/iot-kit
+ExecStart=/home/koni/iot-kit/venv/bin/python /home/koni/iot-kit/handler.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# 環境変数
+Environment=PYTHONPATH=/home/koni/iot-kit
+
+# リソース制限
+MemoryMax=1G
+CPUQuota=80%
+
+[Install]
+WantedBy=multi-user.target
